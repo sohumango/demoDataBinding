@@ -1,0 +1,94 @@
+ref: https://qiita.com/Omoti/items/a83910a990e64f4dbdf1
+
+1. add to build.gradle of app
+    android{
+    ...
+        dataBinding {
+            enabled = true
+        }
+    }
+2. add User.java
+    package com.oukksoft.demodatabinding;
+
+    import android.databinding.BaseObservable;
+    import android.databinding.Bindable;
+
+    public class User extends BaseObservable {
+        private String name;
+
+        public User(String name){
+            this.name = name;
+        }
+
+        @Bindable
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+            notifyPropertyChanged(BR.name);
+        }
+    }
+3. add to layout : activity_main.xml
+    <?xml version="1.0" encoding="utf-8"?>
+    <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <!-- Binding Objects -->
+        <data>
+            <variable name="User"  type="com.oukksoft.demodatabinding.User"/>
+            <variable name="handlers" type="com.oukksoft.demodatabinding.SampleEventHandlers"/>
+        </data>
+        <!-- Views -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{User.name}"/>
+
+            <Button android:id="@+id/button_change"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Change"
+                android:onClick="@{handlers.onChangeClick}"/>
+        </LinearLayout>
+    </layout>
+4. add handlers interface
+    SampleEventHandlers.java
+    public interface SampleEventHandlers {
+        void onChangeClick(View view);
+    }
+
+5. Binding layout with Object and handlers
+    MainActivity.java
+
+    package com.oukksoft.demodatabinding;
+
+    import android.databinding.DataBindingUtil;
+    import android.support.v7.app.AppCompatActivity;
+    import android.os.Bundle;
+    import android.util.Log;
+    import android.view.View;
+
+    import com.oukksoft.demodatabinding.databinding.ActivityMainBinding;
+
+    public class MainActivity extends AppCompatActivity implements SampleEventHandlers{
+        private User mUser = new User("Taro");
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+
+            ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+            binding.setUser(mUser);
+            binding.setHandlers(this);
+        }
+        @Override
+        public void onChangeClick(View view) {
+            Log.d("DEBUG", "Change User Name");
+            mUser.setName("Jiro");
+            Log.d("DEBUG", mUser.getName());
+        }
+    }
